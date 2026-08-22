@@ -1,4 +1,4 @@
-package com.eazybytes.controllers;
+package com.eazybytes.auth.controllers;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
