@@ -29,7 +29,12 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
+    implementation("org.postgresql:postgresql")
 
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
+    implementation("org.flywaydb:flyway-database-postgresql")
+
+    testImplementation("org.testcontainers:postgresql:1.20.1")
 }
 
 tasks.withType<Test> {
