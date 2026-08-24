@@ -19,7 +19,10 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.security:spring-security-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     testAnnotationProcessor("org.projectlombok:lombok")
@@ -35,6 +38,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
 
     testImplementation("org.testcontainers:postgresql:1.20.1")
+
 }
 
 tasks.withType<Test> {
