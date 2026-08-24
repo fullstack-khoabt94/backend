@@ -1,6 +1,6 @@
 package com.eazybytes.auth.controllers;
 
-import com.eazybytes.auth.services.IAuthServices;
+import com.eazybytes.auth.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,19 +12,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-public class AuthControllers {
+public class AuthController {
 
-    private final IAuthServices authServices;
+    private final AuthService authService;
 
     @PostMapping("/login")
     public ResponseEntity<String> login() {
-        this.authServices.login();
+        this.authService.login();
         return ResponseEntity.status(HttpStatus.OK).body("OK");
     }
 
     @GetMapping("/signup")
     public ResponseEntity<String> signup() {
-        this.authServices.signup();
+        this.authService.signup();
         return ResponseEntity.status(HttpStatus.OK).body("OK");
     }
 }

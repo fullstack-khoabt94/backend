@@ -1,6 +1,6 @@
 package com.eazybytes.auth.services;
 
-public interface IAuthServices {
+public interface AuthService {
     void signup();
     void login();
 }

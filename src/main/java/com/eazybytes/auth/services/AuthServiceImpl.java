@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-public class AuthServices implements  IAuthServices{
+public class AuthServiceImpl implements  AuthService{
 
     @Override
     public void signup() {
