@@ -1,5 +1,7 @@
 package com.eazybytes.auth.controllers;
 
+import com.eazybytes.auth.dtos.LoginDto;
+import com.eazybytes.auth.dtos.LoginResponse;
 import com.eazybytes.auth.services.AuthService;
 import com.eazybytes.user.dtos.CreateUserDto;
 import com.eazybytes.user.dtos.UserResponse;
@@ -20,9 +22,9 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login() {
-        this.authService.login();
-        return ResponseEntity.status(HttpStatus.OK).body("OK");
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginDto loginDto) {
+        LoginResponse loginResponse = this.authService.login(loginDto);
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
     @PostMapping("/signup")
