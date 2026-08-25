@@ -5,5 +5,7 @@ import com.eazybytes.user.entity.User;
 import java.util.UUID;
 
 public interface UserService {
-    User getUser(UUID userId);
+    User getByID(UUID userId);
+
+    User getByEmail(String email);
 }

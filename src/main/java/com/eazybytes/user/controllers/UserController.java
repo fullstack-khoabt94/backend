@@ -20,7 +20,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<User> getMe() {
-        User user = this.userService.getUser(UUID.randomUUID());
+        User user = this.userService.getByID(UUID.randomUUID());
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 

@@ -15,7 +15,12 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public User getUser(UUID userId) {
+    public User getByID(UUID userId) {
         return this.userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User"));
+    }
+
+    @Override
+    public User getByEmail(String email) {
+        return this.userRepository.findUserByEmail(email).orElseThrow(() -> new NotFoundException("User"));
     }
 }
