@@ -1,11 +1,14 @@
 package com.eazybytes.auth.controllers;
 
 import com.eazybytes.auth.services.AuthService;
+import com.eazybytes.user.dtos.CreateUserDto;
+import com.eazybytes.user.dtos.UserResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,9 +25,9 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body("OK");
     }
 
-    @GetMapping("/signup")
-    public ResponseEntity<String> signup() {
-        this.authService.signup();
-        return ResponseEntity.status(HttpStatus.OK).body("OK");
+    @PostMapping("/signup")
+    public ResponseEntity<UserResponse> signup(@Valid @RequestBody CreateUserDto createUserDto) {
+        UserResponse userResponse = this.authService.signup(createUserDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
     }
 }
