@@ -2,6 +2,7 @@ package com.eazybytes.auth.services;
 
 import com.eazybytes.auth.dtos.LoginDto;
 import com.eazybytes.auth.dtos.LoginResponse;
+import com.eazybytes.auth.jwt.JwtUtils;
 import com.eazybytes.exceptions.BadRequestException;
 import com.eazybytes.user.dtos.CreateUserDto;
 import com.eazybytes.user.dtos.UserResponse;
@@ -26,6 +27,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationProvider authenticationProvider;
+    private final JwtUtils jwtUtils;
 
     @Override
     public UserResponse signup(CreateUserDto createUserDto) {
@@ -60,7 +62,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BadCredentialsException("Bad credentials!");
         }
 
-        UserInfo userInfo = (UserInfo) authentication.getDetails();
+        UserInfo userInfo = (UserInfo) authentication.getPrincipal();
 
         if (userInfo == null) {
             throw new BadCredentialsException("Bad credentials!");
@@ -69,10 +71,8 @@ public class AuthServiceImpl implements AuthService {
 
         User fullUser = this.userRepository.findById(userId).orElseThrow();
 
-        // create access token
+        String token = this.jwtUtils.generateToken(authentication);
 
-        return new LoginResponse(UserResponse.fromUser(fullUser));
-
-
+        return new LoginResponse(UserResponse.fromUser(fullUser), token);
     }
 }

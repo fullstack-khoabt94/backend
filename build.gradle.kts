@@ -39,6 +39,10 @@ dependencies {
 
     testImplementation("org.testcontainers:postgresql:1.20.1")
 
+    implementation("io.jsonwebtoken:jjwt-api:0.13.0")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
+
 }
 
 tasks.withType<Test> {
