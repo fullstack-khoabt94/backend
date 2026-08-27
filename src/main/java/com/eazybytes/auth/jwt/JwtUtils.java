@@ -1,18 +1,20 @@
 package com.eazybytes.auth.jwt;
 
 import com.eazybytes.user.entity.UserInfo;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -27,10 +29,10 @@ public class JwtUtils {
 
     public String generateToken(Authentication authentication) {
         UserInfo userInfo = (UserInfo) authentication.getPrincipal();
-        Map<String, String> claims = new HashMap<>();
+        Map<String, Object> claims = new HashMap<>();
 
         claims.put("email", userInfo.getUsername());
-        claims.put("roles", userInfo.getAuthorities().toString());
+        claims.put("roles", List.of("ROLE_USER"));
 
 
         return Jwts.builder()
@@ -54,11 +56,17 @@ public class JwtUtils {
         return UUID.fromString(extractAllClaims(token).getSubject());
     }
 
+    public Collection<GrantedAuthority> getAuthoritiesFromJwt(String token) {
+        List<String> roles = (List<String>) extractAllClaims(token).get("roles");
+        return roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+    }
+
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser().verifyWith(this.getSigningKey()).build().parse(token);
             return true;
-        } catch (MalformedJwtException | ExpiredJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+        } catch (JwtException e) {
             return false;
         }
 

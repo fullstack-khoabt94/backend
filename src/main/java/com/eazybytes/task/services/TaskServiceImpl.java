@@ -1,5 +1,6 @@
 package com.eazybytes.task.services;
 
+import com.eazybytes.exceptions.BadRequestException;
 import com.eazybytes.exceptions.NotFoundException;
 import com.eazybytes.task.dtos.CreateTaskDto;
 import com.eazybytes.task.dtos.UpdateTaskDto;
@@ -20,10 +21,18 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
 
+
     @Override
-    public Task createTask(CreateTaskDto createTaskDto) {
+    public Task isTaskOwner(UUID ownerId, UUID taskId) throws BadRequestException {
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Task"));
+        if (task.getUser().getId().equals(ownerId)) return task;
+        else throw new BadRequestException("This owner does not own the task!");
+    }
+
+    @Override
+    public Task createTask(UUID ownerId, CreateTaskDto createTaskDto) {
         Task newTask = new Task();
-        User user = userRepository.findById(createTaskDto.userId()).orElseThrow(() -> new NotFoundException("User"));
+        User user = userRepository.findById(ownerId).orElseThrow(() -> new NotFoundException("User"));
         newTask.setUser(user);
         newTask.setTitle(createTaskDto.title());
         newTask.setDescription(createTaskDto.description());
@@ -35,8 +44,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task updateTask(UUID taskId, UpdateTaskDto updateTaskDto) {
-        Task updatedTask = taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Task"));
+    public Task updateTask(UUID ownerId, UUID taskId, UpdateTaskDto updateTaskDto) {
+        Task updatedTask = this.isTaskOwner(ownerId, taskId);
         updatedTask.setTitle(updateTaskDto.title());
         updatedTask.setDescription(updateTaskDto.description());
         updatedTask.setDueDate(updateTaskDto.dueDate());
@@ -44,21 +53,24 @@ public class TaskServiceImpl implements TaskService {
         updatedTask.setPriority(updateTaskDto.priority());
 
         return taskRepository.save(updatedTask);
+
     }
 
     @Override
-    public List<Task> getTasks() {
-        return List.of();
+    public List<Task> getTasks(UUID ownerId) {
+        User user = userRepository.findById(ownerId).orElseThrow(() -> new NotFoundException("User"));
+        return this.taskRepository.findAllByUser(user);
     }
 
     @Override
-    public Task getTask(UUID taskId) {
-        return taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Task"));
+    public Task getTask(UUID ownerId, UUID taskId) {
+        return this.isTaskOwner(ownerId, taskId);
     }
 
     @Override
-    public void deleteTask(UUID taskId) {
-        Task willBeDeletedTask = taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Task"));
+    public boolean deleteTask(UUID ownerId, UUID taskId) {
+        Task willBeDeletedTask = this.isTaskOwner(ownerId, taskId);
         taskRepository.delete(willBeDeletedTask);
+        return true;
     }
 }

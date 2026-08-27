@@ -18,3 +18,7 @@ app:
   jwt:
     secret: ${JWT_SECRET:JQ97P1bhwHojn0Dwz05e6EYjj8Cuj0S3hayUOHvwtUR}
     expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
