@@ -1,12 +1,14 @@
 package com.eazybytes.user.entity;
 
 import com.eazybytes.entity.BaseEntity;
+import com.eazybytes.refreshToken.entity.RefreshToken;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -28,4 +30,7 @@ public class User extends BaseEntity {
 
     @Column(name = "password", nullable = false, length = 200)
     private String password;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<RefreshToken> refreshToken;
 }

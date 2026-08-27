@@ -4,6 +4,10 @@ import com.eazybytes.auth.dtos.LoginDto;
 import com.eazybytes.auth.dtos.LoginResponse;
 import com.eazybytes.auth.jwt.JwtUtils;
 import com.eazybytes.exceptions.BadRequestException;
+import com.eazybytes.refreshToken.dtos.RefreshTokenDto;
+import com.eazybytes.refreshToken.dtos.RefreshTokenResponse;
+import com.eazybytes.refreshToken.entity.RefreshToken;
+import com.eazybytes.refreshToken.services.RefreshTokenServices;
 import com.eazybytes.user.dtos.CreateUserDto;
 import com.eazybytes.user.dtos.UserResponse;
 import com.eazybytes.user.entity.User;
@@ -28,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationProvider authenticationProvider;
     private final JwtUtils jwtUtils;
+    private final RefreshTokenServices refreshTokenServices;
 
     @Override
     public UserResponse signup(CreateUserDto createUserDto) {
@@ -71,8 +76,23 @@ public class AuthServiceImpl implements AuthService {
 
         User fullUser = this.userRepository.findById(userId).orElseThrow();
 
-        String token = this.jwtUtils.generateToken(authentication);
+        String accessToken = this.jwtUtils.generateToken(authentication);
 
-        return new LoginResponse(UserResponse.fromUser(fullUser), token);
+        RefreshTokenResponse refreshTokenResponse = this.refreshTokenServices.createRefreshToken(userId);
+
+        return new LoginResponse(UserResponse.fromUser(fullUser), accessToken, refreshTokenResponse.refreshToken());
+    }
+
+    @Override
+    public LoginResponse refreshToken(RefreshTokenDto refreshTokenDto) throws BadCredentialsException {
+        String refreshToken = refreshTokenDto.refreshToken();
+        if (!this.refreshTokenServices.checkValidRefreshToken(refreshToken)) {
+            throw new BadCredentialsException("Bad credentials, please login again!");
+        }
+
+        RefreshToken refreshTokenInfo = this.refreshTokenServices.getRefreshTokenInfo(refreshToken);
+        String accessToken = this.jwtUtils.generateToken(new UsernamePasswordAuthenticationToken(refreshTokenInfo.getUser().getId(), null, null));
+
+        return new LoginResponse(UserResponse.fromUser(refreshTokenInfo.getUser()), accessToken, refreshToken);
     }
 }

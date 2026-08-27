@@ -64,6 +64,6 @@ public class TaskController {
             @AuthenticationPrincipal UUID userId
     ) {
         boolean isSuccess = this.taskService.deleteTask(userId, taskId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(isSuccess ? "Done" : "Can not delete");
+        return ResponseEntity.status(HttpStatus.OK).body(isSuccess ? "Done" : "Can not delete");
     }
 }

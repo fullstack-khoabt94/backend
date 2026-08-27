@@ -18,6 +18,9 @@ app:
   jwt:
     secret: ${JWT_SECRET:JQ97P1bhwHojn0Dwz05e6EYjj8Cuj0S3hayUOHvwtUR}
     expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+  refresh-token:
+    secret: ${REFRESH_TOKEN_SECRET:tUwlxBgabYtQSwAE3v0LlHR4ODOhTj76R0LR7CEGInX}
+    expiration-ms: ${REFRESH_TOKEN_EXPIRATION_MS:86400000}
 logging:
   level:
     org.springframework.security: DEBUG
