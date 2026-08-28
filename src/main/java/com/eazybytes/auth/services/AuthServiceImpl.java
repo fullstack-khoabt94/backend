@@ -7,7 +7,10 @@ import com.eazybytes.exceptions.BadRequestException;
 import com.eazybytes.refreshToken.dtos.RefreshTokenDto;
 import com.eazybytes.refreshToken.dtos.RefreshTokenResponse;
 import com.eazybytes.refreshToken.entity.RefreshToken;
-import com.eazybytes.refreshToken.services.RefreshTokenServices;
+import com.eazybytes.refreshToken.services.RefreshTokenService;
+import com.eazybytes.resetpwToken.dtos.ResetPasswordRequestDto;
+import com.eazybytes.resetpwToken.entity.ResetpwToken;
+import com.eazybytes.resetpwToken.services.ResetpwTokenService;
 import com.eazybytes.user.dtos.CreateUserDto;
 import com.eazybytes.user.dtos.UserResponse;
 import com.eazybytes.user.entity.User;
@@ -32,8 +35,8 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationProvider authenticationProvider;
     private final JwtUtils jwtUtils;
-    private final RefreshTokenServices refreshTokenServices;
-
+    private final RefreshTokenService refreshTokenService;
+    private final ResetpwTokenService resetpwTokenService;
 
     @Override
     public UserResponse signup(CreateUserDto createUserDto) {
@@ -79,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = this.jwtUtils.generateToken(authentication);
 
-        RefreshTokenResponse refreshTokenResponse = this.refreshTokenServices.createRefreshToken(userId);
+        RefreshTokenResponse refreshTokenResponse = this.refreshTokenService.createRefreshToken(userId);
 
         return new LoginResponse(UserResponse.fromUser(fullUser), accessToken, refreshTokenResponse.refreshToken());
     }
@@ -87,8 +90,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse refreshToken(RefreshTokenDto refreshTokenDto) throws BadCredentialsException {
         String refreshToken = refreshTokenDto.refreshToken();
-        RefreshToken refreshTokenInfo = this.refreshTokenServices.getValidRefreshToken(refreshToken);
-        
+        RefreshToken refreshTokenInfo = this.refreshTokenService.getValidRefreshToken(refreshToken);
+
         String accessToken = this.jwtUtils.generateToken(new UsernamePasswordAuthenticationToken(
                 UserInfo.fromUser(refreshTokenInfo.getUser()),
                 null,
@@ -96,5 +99,31 @@ public class AuthServiceImpl implements AuthService {
         ));
 
         return new LoginResponse(UserResponse.fromUser(refreshTokenInfo.getUser()), accessToken, refreshToken);
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequestDto resetPasswordRequestDto) {
+        // check valid resetpw token
+        ResetpwToken resetpwToken = this.resetpwTokenService.getValidResetpwToken(resetPasswordRequestDto.resetpwToken());
+
+        // retrieve user
+        User user = resetpwToken.getUser();
+
+        // revoke resetpw token
+        this.resetpwTokenService.revokeAllByUserId(user.getId());
+
+        // compare
+        if (this.passwordEncoder.matches(resetPasswordRequestDto.newPassword(), user.getPassword())) {
+            throw new BadRequestException("Old and new password have to be different");
+        }
+        String hashedNewPassword = this.passwordEncoder.encode(resetPasswordRequestDto.newPassword());
+
+        // save
+        user.setPassword(hashedNewPassword);
+
+        userRepository.save(user);
+
+        // revoke refresh tokens
+        this.refreshTokenService.revokeAllByUserId(user.getId());
     }
 }

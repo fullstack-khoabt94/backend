@@ -21,6 +21,8 @@ app:
   refresh-token:
     secret: ${REFRESH_TOKEN_SECRET:tUwlxBgabYtQSwAE3v0LlHR4ODOhTj76R0LR7CEGInX}
     expiration-ms: ${REFRESH_TOKEN_EXPIRATION_MS:86400000}
+  resetpw-token:
+    expiration-ms: ${RESETPW_TOKEN_EXPIRATION_MS:3600000}
 logging:
   level:
     org.springframework.security: DEBUG

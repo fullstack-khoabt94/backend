@@ -5,10 +5,10 @@ import com.eazybytes.refreshToken.entity.RefreshToken;
 
 import java.util.UUID;
 
-public interface RefreshTokenServices {
+public interface RefreshTokenService {
     RefreshTokenResponse createRefreshToken(UUID userId);
-    
+
     RefreshToken getValidRefreshToken(String refreshToken);
 
-    void revokeRefreshToken(String refreshToken);
+    void revokeAllByUserId(UUID userId);
 }

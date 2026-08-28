@@ -1,11 +1,11 @@
-CREATE TABLE refresh_tokens
+CREATE TABLE resetpw_tokens
 (
 	id            UUID primary key,
 	user_id       UUID      not null references users (id) on delete cascade,
-	refresh_token TEXT      not null unique,
+	resetpw_token TEXT      not null unique,
 	is_revoked    BOOLEAN   not null default false,
 	created_at    timestamp not null default now(),
-	updated_at    TIMESTAMP NOT NULL DEFAULT now(),
 	expired_at    timestamp NOT NULL,
-	revoked_at    timestamp          default null
+	revoked_at    timestamp          default null,
+	updated_at    timestamp not null default now()
 )

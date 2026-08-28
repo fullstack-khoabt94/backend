@@ -18,11 +18,12 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class RefreshTokenServicesImpl implements RefreshTokenServices {
+public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
@@ -56,7 +57,8 @@ public class RefreshTokenServicesImpl implements RefreshTokenServices {
 
     @Override
     public RefreshToken getValidRefreshToken(String refreshToken) {
-        RefreshToken found = this.refreshTokenRepository.findRefreshTokenByRefreshToken(refreshToken).orElseThrow();
+        RefreshToken found = this.refreshTokenRepository.findRefreshTokenByRefreshToken(refreshToken)
+                .orElseThrow(() -> new BadCredentialsException("Bad credentials, please login again"));
         if (found.getIsRevoked() || LocalDateTime.now().isAfter(found.getExpiredAt())) {
             throw new BadCredentialsException("Bad credentials, please login again");
         }
@@ -64,10 +66,13 @@ public class RefreshTokenServicesImpl implements RefreshTokenServices {
     }
 
     @Override
-    public void revokeRefreshToken(String refreshToken) {
-        RefreshToken findRefreshToken = this.getValidRefreshToken(refreshToken);
-        findRefreshToken.setIsRevoked(true);
-        findRefreshToken.setRevokedAt(LocalDateTime.now());
-        refreshTokenRepository.save(findRefreshToken);
+    public void revokeAllByUserId(UUID userId) {
+        List<RefreshToken> refreshTokens = this.refreshTokenRepository.findByUserId(userId);
+        refreshTokens.forEach(token -> {
+            token.setRevokedAt(LocalDateTime.now());
+            token.setIsRevoked(true);
+        });
+
+        refreshTokenRepository.saveAll(refreshTokens);
     }
 }

@@ -4,17 +4,16 @@ import com.eazybytes.auth.dtos.LoginDto;
 import com.eazybytes.auth.dtos.LoginResponse;
 import com.eazybytes.auth.services.AuthService;
 import com.eazybytes.refreshToken.dtos.RefreshTokenDto;
+import com.eazybytes.resetpwToken.dtos.ResetPasswordRequestDto;
+import com.eazybytes.resetpwToken.dtos.ResetpwTokenRequestDto;
+import com.eazybytes.resetpwToken.services.ResetpwTokenService;
 import com.eazybytes.user.dtos.CreateUserDto;
 import com.eazybytes.user.dtos.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -22,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final ResetpwTokenService resetpwTokenService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginDto loginDto) {
@@ -36,8 +36,20 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<LoginResponse> refreshToken(@Valid @RequestBody RefreshTokenDto refreshTokenDto) throws BadCredentialsException {
+    public ResponseEntity<LoginResponse> refreshToken(@Valid @RequestBody RefreshTokenDto refreshTokenDto) {
         LoginResponse loginResponse = this.authService.refreshToken(refreshTokenDto);
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
+    }
+
+    @PostMapping("/request-reset-password-token")
+    public ResponseEntity<String> requestResetPasswordToken(@Valid @RequestBody ResetpwTokenRequestDto resetpwTokenRequestDto) {
+        this.resetpwTokenService.createResetpwToken(resetpwTokenRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).body("Token issued!");
+    }
+
+    @PutMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequestDto resetPasswordRequestDto) {
+        this.authService.resetPassword(resetPasswordRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).body("Success!");
     }
 }
