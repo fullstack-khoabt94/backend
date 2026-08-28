@@ -27,21 +27,23 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(Authentication authentication) {
+    public AccessTokenResult generateToken(Authentication authentication) {
         UserInfo userInfo = (UserInfo) authentication.getPrincipal();
         Map<String, Object> claims = new HashMap<>();
 
         claims.put("email", userInfo.getUsername());
         claims.put("roles", List.of("ROLE_USER"));
 
-
-        return Jwts.builder()
-                .subject(userInfo.getId().toString())
-                .issuedAt(new Date())
-                .expiration(new Date((new Date()).getTime() + jwtProperties.expirationMs()))
-                .signWith(this.getSigningKey())
-                .claims(claims)
-                .compact();
+        return new AccessTokenResult(
+                Jwts.builder()
+                        .subject(userInfo.getId().toString())
+                        .issuedAt(new Date())
+                        .expiration(new Date((new Date()).getTime() + jwtProperties.expirationMs()))
+                        .signWith(this.getSigningKey())
+                        .claims(claims)
+                        .compact(),
+                jwtProperties.expirationMs() / 1000
+        );
     }
 
     private Claims extractAllClaims(String token) {

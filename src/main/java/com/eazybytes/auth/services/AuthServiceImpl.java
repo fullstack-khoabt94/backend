@@ -2,6 +2,7 @@ package com.eazybytes.auth.services;
 
 import com.eazybytes.auth.dtos.LoginDto;
 import com.eazybytes.auth.dtos.LoginResponse;
+import com.eazybytes.auth.jwt.AccessTokenResult;
 import com.eazybytes.auth.jwt.JwtUtils;
 import com.eazybytes.exceptions.BadRequestException;
 import com.eazybytes.refreshToken.dtos.RefreshTokenDto;
@@ -80,11 +81,17 @@ public class AuthServiceImpl implements AuthService {
 
         User fullUser = this.userRepository.findById(userId).orElseThrow();
 
-        String accessToken = this.jwtUtils.generateToken(authentication);
+        AccessTokenResult accessTokenResults = this.jwtUtils.generateToken(authentication);
 
         RefreshTokenResponse refreshTokenResponse = this.refreshTokenService.createRefreshToken(userId);
 
-        return new LoginResponse(UserResponse.fromUser(fullUser), accessToken, refreshTokenResponse.refreshToken());
+        return new LoginResponse(
+                UserResponse.fromUser(fullUser),
+                accessTokenResults.accessToken(),
+                refreshTokenResponse.refreshToken(),
+                accessTokenResults.accessTokenExpiresIn(),
+                refreshTokenResponse.expiredAt()
+        );
     }
 
     @Override
@@ -92,13 +99,19 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = refreshTokenDto.refreshToken();
         RefreshToken refreshTokenInfo = this.refreshTokenService.getValidRefreshToken(refreshToken);
 
-        String accessToken = this.jwtUtils.generateToken(new UsernamePasswordAuthenticationToken(
+        AccessTokenResult accessTokenResults = this.jwtUtils.generateToken(new UsernamePasswordAuthenticationToken(
                 UserInfo.fromUser(refreshTokenInfo.getUser()),
                 null,
                 null
         ));
 
-        return new LoginResponse(UserResponse.fromUser(refreshTokenInfo.getUser()), accessToken, refreshToken);
+        return new LoginResponse(
+                UserResponse.fromUser(refreshTokenInfo.getUser()),
+                accessTokenResults.accessToken(),
+                refreshTokenInfo.getRefreshToken(),
+                accessTokenResults.accessTokenExpiresIn(),
+                refreshTokenInfo.getExpiredAt()
+        );
     }
 
     @Override
