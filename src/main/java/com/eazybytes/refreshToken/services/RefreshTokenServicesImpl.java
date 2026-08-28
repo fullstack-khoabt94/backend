@@ -9,6 +9,7 @@ import com.eazybytes.user.repositories.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -54,20 +55,17 @@ public class RefreshTokenServicesImpl implements RefreshTokenServices {
     }
 
     @Override
-    public boolean checkValidRefreshToken(String refreshToken) {
-        RefreshToken findRefreshToken = this.getRefreshTokenInfo(refreshToken);
-
-        return !findRefreshToken.getIsRevoked() && LocalDateTime.now().isBefore(findRefreshToken.getExpiredAt());
-    }
-
-    @Override
-    public RefreshToken getRefreshTokenInfo(String refreshToken) {
-        return this.refreshTokenRepository.findRefreshTokenByRefreshToken(refreshToken).orElseThrow();
+    public RefreshToken getValidRefreshToken(String refreshToken) {
+        RefreshToken found = this.refreshTokenRepository.findRefreshTokenByRefreshToken(refreshToken).orElseThrow();
+        if (found.getIsRevoked() || LocalDateTime.now().isAfter(found.getExpiredAt())) {
+            throw new BadCredentialsException("Bad credentials, please login again");
+        }
+        return found;
     }
 
     @Override
     public void revokeRefreshToken(String refreshToken) {
-        RefreshToken findRefreshToken = this.getRefreshTokenInfo(refreshToken);
+        RefreshToken findRefreshToken = this.getValidRefreshToken(refreshToken);
         findRefreshToken.setIsRevoked(true);
         findRefreshToken.setRevokedAt(LocalDateTime.now());
         refreshTokenRepository.save(findRefreshToken);

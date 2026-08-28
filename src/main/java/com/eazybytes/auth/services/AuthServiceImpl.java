@@ -34,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtils jwtUtils;
     private final RefreshTokenServices refreshTokenServices;
 
+
     @Override
     public UserResponse signup(CreateUserDto createUserDto) {
         // check for email
@@ -86,12 +87,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse refreshToken(RefreshTokenDto refreshTokenDto) throws BadCredentialsException {
         String refreshToken = refreshTokenDto.refreshToken();
-        if (!this.refreshTokenServices.checkValidRefreshToken(refreshToken)) {
-            throw new BadCredentialsException("Bad credentials, please login again!");
-        }
-
-        RefreshToken refreshTokenInfo = this.refreshTokenServices.getRefreshTokenInfo(refreshToken);
-        String accessToken = this.jwtUtils.generateToken(new UsernamePasswordAuthenticationToken(refreshTokenInfo.getUser().getId(), null, null));
+        RefreshToken refreshTokenInfo = this.refreshTokenServices.getValidRefreshToken(refreshToken);
+        
+        String accessToken = this.jwtUtils.generateToken(new UsernamePasswordAuthenticationToken(
+                UserInfo.fromUser(refreshTokenInfo.getUser()),
+                null,
+                null
+        ));
 
         return new LoginResponse(UserResponse.fromUser(refreshTokenInfo.getUser()), accessToken, refreshToken);
     }

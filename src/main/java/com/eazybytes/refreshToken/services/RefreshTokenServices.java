@@ -7,10 +7,8 @@ import java.util.UUID;
 
 public interface RefreshTokenServices {
     RefreshTokenResponse createRefreshToken(UUID userId);
-
-    boolean checkValidRefreshToken(String refreshToken);
-
-    RefreshToken getRefreshTokenInfo(String refreshToken);
+    
+    RefreshToken getValidRefreshToken(String refreshToken);
 
     void revokeRefreshToken(String refreshToken);
 }
