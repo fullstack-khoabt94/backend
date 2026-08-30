@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record UpdateTaskDto(
         @NotBlank(message = "Title must not be empty")
@@ -20,6 +21,9 @@ public record UpdateTaskDto(
 
         @NotNull
         TaskStatus status,
+
+        @NotNull
+        UUID boardId,
 
         @Nullable
         @Future

@@ -9,9 +9,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 
 public record CreateTaskDto(
+
+        @NotNull(message = "Board Id must not be empty")
+        UUID boardId,
+
         @NotBlank(message = "Title must not be empty")
         @Size(min = 1, max = 120, message = "Title must be between 1 and 120 characters")
         String title,

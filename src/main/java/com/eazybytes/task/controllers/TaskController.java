@@ -24,37 +24,34 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(
-            @Valid @RequestBody CreateTaskDto createTaskDto,
-            @AuthenticationPrincipal UUID userId
+            @Valid @RequestBody CreateTaskDto createTaskDto
     ) {
-        Task newTask = this.taskService.createTask(userId, createTaskDto);
+        Task newTask = this.taskService.createTask(createTaskDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(TaskResponse.fromTask(newTask));
     }
 
     @PutMapping("/{taskId}")
     public ResponseEntity<TaskResponse> updateTask(
             @PathVariable UUID taskId,
-            @Valid @RequestBody UpdateTaskDto updateTaskDto,
-            @AuthenticationPrincipal UUID userId
+            @Valid @RequestBody UpdateTaskDto updateTaskDto
     ) {
-        Task updatedTask = this.taskService.updateTask(userId, taskId, updateTaskDto);
+        Task updatedTask = this.taskService.updateTask(taskId, updateTaskDto);
         return ResponseEntity.status(HttpStatus.OK).body(TaskResponse.fromTask(updatedTask));
     }
 
     @GetMapping("/{taskId}")
     public ResponseEntity<TaskResponse> getTask(
-            @PathVariable UUID taskId,
-            @AuthenticationPrincipal UUID userId
+            @PathVariable UUID taskId
     ) {
-        Task task = this.taskService.getTask(userId, taskId);
+        Task task = this.taskService.getTask(taskId);
         return ResponseEntity.status(HttpStatus.OK).body(TaskResponse.fromTask(task));
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<TaskResponse>> getAllTask(
-            @AuthenticationPrincipal UUID userId
+            @RequestParam("boardId") UUID boardId
     ) {
-        List<TaskResponse> taskList = this.taskService.getTasks(userId).stream().map(TaskResponse::fromTask).toList();
+        List<TaskResponse> taskList = this.taskService.getTasks(boardId).stream().map(TaskResponse::fromTask).toList();
         return ResponseEntity.status(HttpStatus.OK).body(taskList);
     }
 

@@ -1,5 +1,7 @@
 package com.eazybytes.task.services;
 
+import com.eazybytes.board.entity.Board;
+import com.eazybytes.board.repository.BoardRepository;
 import com.eazybytes.exceptions.BadRequestException;
 import com.eazybytes.exceptions.NotFoundException;
 import com.eazybytes.task.dtos.CreateTaskDto;
@@ -20,20 +22,14 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
-
-
-    @Override
-    public Task isTaskOwner(UUID ownerId, UUID taskId) throws BadRequestException {
-        Task task = taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Task"));
-        if (task.getUser().getId().equals(ownerId)) return task;
-        else throw new BadRequestException("This owner does not own the task!");
-    }
+    private final BoardRepository boardRepository;
 
     @Override
-    public Task createTask(UUID ownerId, CreateTaskDto createTaskDto) {
+    public Task createTask(CreateTaskDto createTaskDto) {
         Task newTask = new Task();
-        User user = userRepository.findById(ownerId).orElseThrow(() -> new NotFoundException("User"));
-        newTask.setUser(user);
+        Board board = this.boardRepository.findById(createTaskDto.boardId()).orElseThrow(() -> new NotFoundException("Board"));
+
+        newTask.setBoard(board);
         newTask.setTitle(createTaskDto.title());
         newTask.setDescription(createTaskDto.description());
         newTask.setDueDate(createTaskDto.dueDate());
@@ -44,8 +40,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task updateTask(UUID ownerId, UUID taskId, UpdateTaskDto updateTaskDto) {
-        Task updatedTask = this.isTaskOwner(ownerId, taskId);
+    public Task updateTask(UUID taskId, UpdateTaskDto updateTaskDto) {
+        Task updatedTask = this.taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Task"));
         updatedTask.setTitle(updateTaskDto.title());
         updatedTask.setDescription(updateTaskDto.description());
         updatedTask.setDueDate(updateTaskDto.dueDate());
@@ -57,19 +53,21 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> getTasks(UUID ownerId) {
-        User user = userRepository.findById(ownerId).orElseThrow(() -> new NotFoundException("User"));
-        return this.taskRepository.findAllByUser(user);
+    public List<Task> getTasks(UUID boardId) {
+        return this.boardRepository.findById(boardId).orElseThrow(() -> new NotFoundException("Board")).getTasks();
     }
 
     @Override
-    public Task getTask(UUID ownerId, UUID taskId) {
-        return this.isTaskOwner(ownerId, taskId);
+    public Task getTask(UUID taskId) {
+        return this.taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Task"));
     }
 
     @Override
     public boolean deleteTask(UUID ownerId, UUID taskId) {
-        Task willBeDeletedTask = this.isTaskOwner(ownerId, taskId);
+        Task willBeDeletedTask = this.taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Task"));
+        User user = this.userRepository.findById(ownerId).orElseThrow(() -> new NotFoundException("User"));
+        if (!willBeDeletedTask.getBoard().getUser().getId().equals(user.getId()))
+            throw new BadRequestException("You are not the owner of the task, so you can't not delete it");
         taskRepository.delete(willBeDeletedTask);
         return true;
     }

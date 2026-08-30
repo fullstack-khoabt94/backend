@@ -8,21 +8,15 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record TaskResponse(
-       UUID id,
-
-                 String title,
-
- String description,
-
-TaskStatus status,
-
-TaskPriority priority,
-
-LocalDateTime dueDate,
-
-UUID userId,
-       LocalDateTime createdAt,
-       LocalDateTime updatedAt
+        UUID id,
+        String title,
+        String description,
+        TaskStatus status,
+        TaskPriority priority,
+        LocalDateTime dueDate,
+        UUID boardId,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
     public static TaskResponse fromTask(Task task) {
         return new TaskResponse(
@@ -32,7 +26,7 @@ UUID userId,
                 task.getStatus(),
                 task.getPriority(),
                 task.getDueDate(),
-                task.getUser().getId(),
+                task.getBoard().getId(),
                 task.getCreatedAt(),
                 task.getUpdatedAt()
         );

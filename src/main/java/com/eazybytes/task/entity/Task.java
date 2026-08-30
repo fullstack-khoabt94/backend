@@ -1,9 +1,9 @@
 package com.eazybytes.task.entity;
 
+import com.eazybytes.board.entity.Board;
 import com.eazybytes.constant.TaskPriority;
 import com.eazybytes.constant.TaskStatus;
 import com.eazybytes.entity.BaseEntity;
-import com.eazybytes.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -47,7 +47,7 @@ public class Task extends BaseEntity {
     private LocalDateTime dueDate;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "user_id", nullable = false, updatable = false)
-    private User user;
+    @OnDelete(action = OnDeleteAction.NO_ACTION)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
 }
