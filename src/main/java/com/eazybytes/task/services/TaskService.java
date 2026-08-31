@@ -1,21 +1,22 @@
 package com.eazybytes.task.services;
 
+import com.eazybytes.dtos.PagedResponse;
 import com.eazybytes.task.dtos.CreateTaskDto;
+import com.eazybytes.task.dtos.TaskResponse;
 import com.eazybytes.task.dtos.UpdateTaskDto;
-import com.eazybytes.task.entity.Task;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface TaskService {
 
-    Task createTask(CreateTaskDto createTaskDto);
+    TaskResponse createTask(CreateTaskDto createTaskDto);
 
-    Task updateTask(UUID taskId, UpdateTaskDto updateTaskDto);
+    TaskResponse updateTask(UUID taskId, UpdateTaskDto updateTaskDto);
 
-    List<Task> getTasks(UUID boardId);
+    PagedResponse<TaskResponse> getTasks(UUID boardId, Pageable pageable);
 
-    Task getTask(UUID taskID);
+    TaskResponse getTask(UUID taskID);
 
     boolean deleteTask(UUID ownerId, UUID taskID);
 }
