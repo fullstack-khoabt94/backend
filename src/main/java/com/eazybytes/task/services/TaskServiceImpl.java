@@ -1,7 +1,7 @@
 package com.eazybytes.task.services;
 
 import com.eazybytes.board.entity.Board;
-import com.eazybytes.board.repository.BoardRepository;
+import com.eazybytes.board.services.BoardService;
 import com.eazybytes.dtos.PagedResponse;
 import com.eazybytes.exceptions.BadRequestException;
 import com.eazybytes.exceptions.NotFoundException;
@@ -31,16 +31,20 @@ public class TaskServiceImpl implements TaskService {
     );
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
-    private final BoardRepository boardRepository;
+    private final BoardService boardService;
 
-    private Board getValidBoard(UUID boardId) {
-        return this.boardRepository.findById(boardId).orElseThrow(() -> new NotFoundException("Board"));
+    private Task getValidTask(UUID userId, UUID boardId, UUID taskID) {
+        Board board = this.boardService.getValidBoard(userId, boardId);
+        Task task = this.taskRepository.findById(taskID).orElseThrow(() -> new NotFoundException("Task"));
+        if (!board.getId().equals(task.getBoard().getId())) throw new NotFoundException("Task");
+        return task;
+
     }
 
     @Override
-    public TaskResponse createTask(CreateTaskDto createTaskDto) {
+    public TaskResponse createTask(UUID userId, UUID boardId, CreateTaskDto createTaskDto) {
         Task newTask = new Task();
-        Board board = this.getValidBoard(createTaskDto.boardId());
+        Board board = this.boardService.getValidBoard(userId, boardId);
 
         newTask.setBoard(board);
         newTask.setTitle(createTaskDto.title());
@@ -54,8 +58,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public TaskResponse updateTask(UUID taskId, UpdateTaskDto updateTaskDto) {
-        Task updatedTask = this.taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Task"));
+    public TaskResponse updateTask(UUID userId, UUID boardId, UUID taskId, UpdateTaskDto updateTaskDto) {
+        Task updatedTask = this.getValidTask(userId, boardId, taskId);
         updatedTask.setTitle(updateTaskDto.title());
         updatedTask.setDescription(updateTaskDto.description());
         updatedTask.setDueDate(updateTaskDto.dueDate());
@@ -68,17 +72,16 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public PagedResponse<TaskResponse> getTasks(UUID boardId, Pageable pageable) {
+    public PagedResponse<TaskResponse> getTasks(UUID userId, UUID boardId, Pageable pageable) {
         Pageable sanitizedPageable = Sorts.sanitize(pageable, ALLOWED_SORT, "id");
-        Board board = this.getValidBoard(boardId);
+        Board board = this.boardService.getValidBoard(userId, boardId);
         return PagedResponse.of(this.taskRepository.findByBoard(board, sanitizedPageable)
                 .map(TaskResponse::fromTask));
     }
 
     @Override
-    public TaskResponse getTask(UUID taskId) {
-        Task found = this.taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Task"));
-        return TaskResponse.fromTask(found);
+    public TaskResponse getTask(UUID userId, UUID boardId, UUID taskId) {
+        return TaskResponse.fromTask(this.getValidTask(userId, boardId, taskId));
     }
 
     @Override

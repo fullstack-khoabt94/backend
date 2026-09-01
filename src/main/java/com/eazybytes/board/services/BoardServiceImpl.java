@@ -4,7 +4,6 @@ import com.eazybytes.board.dtos.CreateBoardDto;
 import com.eazybytes.board.dtos.UpdateBoardDto;
 import com.eazybytes.board.entity.Board;
 import com.eazybytes.board.repository.BoardRepository;
-import com.eazybytes.exceptions.BadRequestException;
 import com.eazybytes.exceptions.NotFoundException;
 import com.eazybytes.user.entity.User;
 import com.eazybytes.user.repositories.UserRepository;
@@ -21,10 +20,11 @@ public class BoardServiceImpl implements BoardService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
 
-    public Board getValidBoard(UUID ownerId, UUID boardId) throws BadRequestException {
+    public Board getValidBoard(UUID ownerId, UUID boardId) {
         Board board = this.boardRepository.findById(boardId).orElseThrow(() -> new NotFoundException("Board"));
-        if (board.getUser().getId().equals(ownerId)) return board;
-        else throw new BadRequestException("This owner does not own the board!");
+        if (!board.getUser().getId().equals(ownerId))
+            throw new NotFoundException("This owner does not own the board!");
+        return board;
     }
 
     @Override

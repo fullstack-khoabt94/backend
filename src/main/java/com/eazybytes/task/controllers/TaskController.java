@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/task")
+@RequestMapping("/board/{boardId}/task")
 @RequiredArgsConstructor
 public class TaskController {
 
@@ -26,37 +26,44 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(
-            @Valid @RequestBody CreateTaskDto createTaskDto
+            @Valid @RequestBody CreateTaskDto createTaskDto,
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID boardId
     ) {
-        TaskResponse newTask = this.taskService.createTask(createTaskDto);
+        TaskResponse newTask = this.taskService.createTask(userId, boardId, createTaskDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(newTask);
     }
 
     @PutMapping("/{taskId}")
     public ResponseEntity<TaskResponse> updateTask(
             @PathVariable UUID taskId,
-            @Valid @RequestBody UpdateTaskDto updateTaskDto
+            @PathVariable UUID boardId,
+            @Valid @RequestBody UpdateTaskDto updateTaskDto,
+            @AuthenticationPrincipal UUID userId
     ) {
-        TaskResponse updatedTask = this.taskService.updateTask(taskId, updateTaskDto);
+        TaskResponse updatedTask = this.taskService.updateTask(userId, boardId, taskId, updateTaskDto);
         return ResponseEntity.status(HttpStatus.OK).body(updatedTask);
     }
 
     @GetMapping("/{taskId}")
     public ResponseEntity<TaskResponse> getTask(
-            @PathVariable UUID taskId
+            @PathVariable UUID taskId,
+            @PathVariable UUID boardId,
+            @AuthenticationPrincipal UUID userId
     ) {
-        TaskResponse task = this.taskService.getTask(taskId);
+        TaskResponse task = this.taskService.getTask(userId, boardId, taskId);
         return ResponseEntity.status(HttpStatus.OK).body(task);
     }
 
     @GetMapping("/all")
     public ResponseEntity<PagedResponse<TaskResponse>> getAllTask(
-            @RequestParam UUID boardId,
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID boardId,
             @PageableDefault(size = 20, sort = "createdAt",
                     direction = Sort.Direction.DESC) Pageable pageable
     ) {
         PagedResponse<TaskResponse> taskList =
-                this.taskService.getTasks(boardId, pageable);
+                this.taskService.getTasks(userId, boardId, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(taskList);
     }
 

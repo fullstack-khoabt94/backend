@@ -10,13 +10,13 @@ import java.util.UUID;
 
 public interface TaskService {
 
-    TaskResponse createTask(CreateTaskDto createTaskDto);
+    TaskResponse createTask(UUID userId, UUID boardId, CreateTaskDto createTaskDto);
 
-    TaskResponse updateTask(UUID taskId, UpdateTaskDto updateTaskDto);
+    TaskResponse updateTask(UUID userId, UUID boardId, UUID taskId, UpdateTaskDto updateTaskDto);
 
-    PagedResponse<TaskResponse> getTasks(UUID boardId, Pageable pageable);
+    PagedResponse<TaskResponse> getTasks(UUID userId, UUID boardId, Pageable pageable);
 
-    TaskResponse getTask(UUID taskID);
+    TaskResponse getTask(UUID userId, UUID boardId, UUID taskID);
 
     boolean deleteTask(UUID ownerId, UUID taskID);
 }
