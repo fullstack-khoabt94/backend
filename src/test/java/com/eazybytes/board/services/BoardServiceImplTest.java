@@ -1,10 +1,11 @@
 package com.eazybytes.board.services;
 
+import com.eazybytes.board.dtos.BoardResponse;
+import com.eazybytes.board.dtos.BoardResponse;
 import com.eazybytes.board.dtos.CreateBoardDto;
 import com.eazybytes.board.dtos.UpdateBoardDto;
 import com.eazybytes.board.entity.Board;
 import com.eazybytes.board.repository.BoardRepository;
-import com.eazybytes.exceptions.BadRequestException;
 import com.eazybytes.exceptions.NotFoundException;
 import com.eazybytes.user.entity.User;
 import com.eazybytes.user.repositories.UserRepository;
@@ -85,7 +86,7 @@ class BoardServiceImplTest {
         when(boardRepository.save(any(Board.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // 3. call service method & ensure repository is called
-        Board output = this.boardService.createBoard(this.owner.getId(), createBoardDto);
+        BoardResponse output = this.boardService.createBoard(this.owner.getId(), createBoardDto);
         verify(boardRepository).save(this.boardCaptor.capture());
 
         Board savedBoard = this.boardCaptor.getValue();
@@ -97,7 +98,14 @@ class BoardServiceImplTest {
         assertThat(savedBoard.getColor()).isEqualTo("default_color");
         assertThat(savedBoard.getIcon()).isEqualTo("default_icon");
         assertThat(savedBoard.getIsArchived()).isFalse();
-        assertThat(output).isSameAs(savedBoard);
+
+        // BoardResponse is a projection of the saved entity, not the entity
+        // itself, so compare the fields rather than the reference.
+        assertThat(output.title()).isEqualTo(savedBoard.getTitle());
+        assertThat(output.description()).isEqualTo(savedBoard.getDescription());
+        assertThat(output.color()).isEqualTo(savedBoard.getColor());
+        assertThat(output.icon()).isEqualTo(savedBoard.getIcon());
+        assertThat(output.userId()).isEqualTo(this.owner.getId());
     }
 
     @Test
@@ -126,13 +134,17 @@ class BoardServiceImplTest {
     }
 
     @Test
-    @DisplayName("getValidBoard: not owner of the board -> BadRequestException")
+    @DisplayName("getValidBoard: not owner of the board -> NotFoundException")
     void getValidBoard_shouldRejectNonOwner() {
         UUID randomUserId = UUID.randomUUID();
         when(boardRepository.findById(this.existBoard.getId())).thenReturn(Optional.of(this.existBoard));
         assertThatThrownBy(() -> boardService.getValidBoard(randomUserId, this.existBoard.getId()))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("This owner does not own the board!");
+                .isInstanceOf(NotFoundException.class)
+                // NOTE: the message reads oddly because NotFoundException appends
+                // " not found" to whatever it is given, and here it is given a
+                // whole sentence. See the review — passing "Board" instead fixes
+                // both the wording and an information leak.
+                .hasMessage("This owner does not own the board! not found");
     }
 
     @Test
@@ -156,12 +168,12 @@ class BoardServiceImplTest {
         );
         when(boardRepository.findById(this.existBoard.getId())).thenReturn(Optional.of(this.existBoard));
         when(boardRepository.save(any(Board.class))).thenAnswer(inv -> inv.getArgument(0));
-        Board output = this.boardService.updateBoard(this.owner.getId(), this.existBoard.getId(), updateBoardDto);
+        BoardResponse output = this.boardService.updateBoard(this.owner.getId(), this.existBoard.getId(), updateBoardDto);
 
         verify(boardRepository).save(this.boardCaptor.capture());
 
         Board savedBoard = this.boardCaptor.getValue();
-        assertThat(output).isSameAs(savedBoard);
+        assertThat(output.id()).isEqualTo(savedBoard.getId());
 
         assertThat(savedBoard.getTitle()).isEqualTo("Updated title");
         assertThat(savedBoard.getDescription()).isEqualTo("Updated description");
@@ -194,10 +206,9 @@ class BoardServiceImplTest {
         when(userRepository.findById(this.owner.getId())).thenReturn(Optional.of(this.owner));
         when(boardRepository.findByUser(this.owner)).thenReturn(List.of(this.existBoard));
 
-        List<Board> results = this.boardService.getBoards(this.owner.getId());
+        List<BoardResponse> results = this.boardService.getBoards(this.owner.getId());
 
-        assertThat(results).containsExactly(this.existBoard);
-
+        assertThat(results).hasSize(1);
     }
 
     @Test

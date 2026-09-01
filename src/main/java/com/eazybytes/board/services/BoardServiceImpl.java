@@ -1,5 +1,6 @@
 package com.eazybytes.board.services;
 
+import com.eazybytes.board.dtos.BoardResponse;
 import com.eazybytes.board.dtos.CreateBoardDto;
 import com.eazybytes.board.dtos.UpdateBoardDto;
 import com.eazybytes.board.entity.Board;
@@ -28,7 +29,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public Board createBoard(UUID ownerId, CreateBoardDto createBoardDto) {
+    public BoardResponse createBoard(UUID ownerId, CreateBoardDto createBoardDto) {
         Board newBoard = new Board();
         User user = this.userRepository.findById(ownerId).orElseThrow(() -> new NotFoundException("User"));
         newBoard.setUser(user);
@@ -37,25 +38,27 @@ public class BoardServiceImpl implements BoardService {
         newBoard.setColor(createBoardDto.color());
         newBoard.setIcon(createBoardDto.icon());
 
-        return boardRepository.save(newBoard);
+        Board savedBoard = boardRepository.save(newBoard);
+        return BoardResponse.fromBoard(savedBoard);
 
     }
 
     @Override
-    public Board updateBoard(UUID ownerId, UUID boardId, UpdateBoardDto updateBoardDto) {
+    public BoardResponse updateBoard(UUID ownerId, UUID boardId, UpdateBoardDto updateBoardDto) {
         Board board = this.getValidBoard(ownerId, boardId);
         board.setTitle(updateBoardDto.title());
         board.setDescription(updateBoardDto.description());
         board.setIcon(updateBoardDto.icon());
         board.setColor(updateBoardDto.color());
 
-        return boardRepository.save(board);
+        Board savedBoard = boardRepository.save(board);
+        return BoardResponse.fromBoard(savedBoard);
     }
 
     @Override
-    public List<Board> getBoards(UUID ownerId) {
+    public List<BoardResponse> getBoards(UUID ownerId) {
         User user = this.userRepository.findById(ownerId).orElseThrow(() -> new NotFoundException("User"));
-        return this.boardRepository.findByUser(user);
+        return this.boardRepository.findByUser(user).stream().map(BoardResponse::fromBoard).toList();
     }
 
     @Override

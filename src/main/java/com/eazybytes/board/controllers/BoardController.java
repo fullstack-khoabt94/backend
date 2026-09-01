@@ -27,8 +27,8 @@ public class BoardController {
             @Valid @RequestBody CreateBoardDto createBoardDto,
             @AuthenticationPrincipal UUID userId
     ) {
-        Board newBoard = this.boardService.createBoard(userId, createBoardDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(BoardResponse.fromBoard(newBoard));
+        BoardResponse newBoard = this.boardService.createBoard(userId, createBoardDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newBoard);
     }
 
     @PutMapping("/{boardId}")
@@ -37,8 +37,8 @@ public class BoardController {
             @Valid @RequestBody UpdateBoardDto updateBoardDto,
             @AuthenticationPrincipal UUID userId
     ) {
-        Board updatedBoard = this.boardService.updateBoard(userId, boardId, updateBoardDto);
-        return ResponseEntity.status(HttpStatus.OK).body(BoardResponse.fromBoard(updatedBoard));
+        BoardResponse updatedBoard = this.boardService.updateBoard(userId, boardId, updateBoardDto);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedBoard);
     }
 
     @GetMapping("/{boardId}")
@@ -55,7 +55,7 @@ public class BoardController {
             @AuthenticationPrincipal UUID userId
     ) {
         List<BoardResponse> boardList =
-                this.boardService.getBoards(userId).stream().map(BoardResponse::fromBoard).toList();
+                this.boardService.getBoards(userId);
         return ResponseEntity.status(HttpStatus.OK).body(boardList);
     }
 
