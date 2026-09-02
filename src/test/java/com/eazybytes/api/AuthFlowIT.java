@@ -106,7 +106,7 @@ class AuthFlowIT extends AbstractApiIT {
     void accessToken_shouldAuthenticateProtectedRequests() throws Exception {
         String email = randomEmail();
         signup(email);
-        String token = login(email, PASSWORD);
+        String token = login(email);
 
         mockMvc.perform(asUser(get("/api/user/me"), token))
                 .andExpect(status().isOk())
