@@ -3,7 +3,6 @@ package com.eazybytes.task.services;
 import com.eazybytes.board.entity.Board;
 import com.eazybytes.board.services.BoardService;
 import com.eazybytes.dtos.PagedResponse;
-import com.eazybytes.exceptions.BadRequestException;
 import com.eazybytes.exceptions.NotFoundException;
 import com.eazybytes.task.dtos.CreateTaskDto;
 import com.eazybytes.task.dtos.TaskResponse;
@@ -89,7 +88,7 @@ public class TaskServiceImpl implements TaskService {
         Task willBeDeletedTask = this.taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Task"));
         User user = this.userRepository.findById(ownerId).orElseThrow(() -> new NotFoundException("User"));
         if (!willBeDeletedTask.getBoard().getUser().getId().equals(user.getId()))
-            throw new BadRequestException("You are not the owner of the task, so you can't not delete it");
+            throw new NotFoundException("Task");
         taskRepository.delete(willBeDeletedTask);
         return true;
     }

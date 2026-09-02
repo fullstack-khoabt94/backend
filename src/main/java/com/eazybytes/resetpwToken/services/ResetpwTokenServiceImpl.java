@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -48,11 +49,15 @@ public class ResetpwTokenServiceImpl implements ResetpwTokenService {
 
     @Override
     public void createResetpwToken(ResetpwTokenRequestDto resetpwTokenRequestDto) {
-        User user =
-                this.userRepository.findUserByEmail(resetpwTokenRequestDto.email()).orElseThrow(
-                        () -> new BadCredentialsException("Invalid email!")
-                );
+        Optional<User> maybeUser =
+                this.userRepository.findUserByEmail(resetpwTokenRequestDto.email());
 
+        if (maybeUser.isEmpty()) {
+            log.info("An invalid email request to issue reset password token {}", resetpwTokenRequestDto.email());
+            return;
+        }
+
+        User user = maybeUser.get();
         this.revokeAllByUserId(user.getId());
         ResetpwToken resetpwToken = new ResetpwToken();
         resetpwToken.setUser(user);

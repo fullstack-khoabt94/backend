@@ -5,7 +5,6 @@ import com.eazybytes.board.services.BoardService;
 import com.eazybytes.constant.TaskPriority;
 import com.eazybytes.constant.TaskStatus;
 import com.eazybytes.dtos.PagedResponse;
-import com.eazybytes.exceptions.BadRequestException;
 import com.eazybytes.exceptions.NotFoundException;
 import com.eazybytes.task.dtos.CreateTaskDto;
 import com.eazybytes.task.dtos.TaskResponse;
@@ -37,13 +36,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * UNIT TEST for TaskServiceImpl.
- *
+ * <p>
  * BoardService is a MOCK, not the real BoardServiceImpl: ownership of a board is
  * already covered by BoardServiceImplTest, so here we only care that this class
  * ASKS for the check and reacts correctly to either answer.
@@ -73,7 +70,9 @@ class TaskServiceImplTest {
     private Board existBoard;
     private Task existTask;
 
-    /** A board owned by somebody else, and a task inside it — the attacker's target. */
+    /**
+     * A board owned by somebody else, and a task inside it — the attacker's target.
+     */
     private Board otherBoard;
     private Task otherTask;
 
@@ -140,14 +139,16 @@ class TaskServiceImplTest {
         );
     }
 
-    /** The caller owns the board named in the path. */
+    /**
+     * The caller owns the board named in the path.
+     */
     private void givenCallerOwnsBoard() {
         when(boardService.getValidBoard(owner.getId(), existBoard.getId())).thenReturn(existBoard);
     }
 
     /**
      * The caller does NOT own the board named in the path — BoardService rejects it.
-     *
+     * <p>
      * The exception here must mirror what the REAL BoardServiceImpl throws, or
      * these tests describe a world that no longer exists. It answers 404 rather
      * than 400 so that "not yours" and "does not exist" are indistinguishable
@@ -218,7 +219,7 @@ class TaskServiceImplTest {
 
     /**
      * REGRESSION TEST for the IDOR.
-     *
+     * <p>
      * The attacker owns {boardId} and passes a {taskId} from someone else's board.
      * Owning the board must not be enough — the task has to live in it.
      */
@@ -301,7 +302,9 @@ class TaskServiceImplTest {
         assertThat(taskCaptor.getValue().getBoard()).isSameAs(existBoard);
     }
 
-    /** REGRESSION TEST for the IDOR — the write path this time. */
+    /**
+     * REGRESSION TEST for the IDOR — the write path this time.
+     */
     @Test
     @DisplayName("updateTask: task belongs to another board -> rejected, nothing saved")
     void updateTask_shouldRejectTaskBelongingToAnotherBoard() {
@@ -404,14 +407,14 @@ class TaskServiceImplTest {
     }
 
     @Test
-    @DisplayName("deleteTask: not the owner of the task -> BadRequestException, nothing deleted")
+    @DisplayName("deleteTask: not the owner of the task -> NotFoundException, nothing deleted")
     void deleteTask_shouldRejectNonOwner() {
         when(taskRepository.findById(otherTask.getId())).thenReturn(Optional.of(otherTask));
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
 
         assertThatThrownBy(() -> taskService.deleteTask(owner.getId(), otherTask.getId()))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("You are not the owner of the task, so you can't not delete it");
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Task not found");
 
         verify(taskRepository, never()).delete(any());
         verify(taskRepository, never()).deleteById(any());
