@@ -7,7 +7,8 @@ public final class SecurityRoutes {
             "/api/auth/login",
             "/api/auth/refresh-token",
             "/api/auth/reset-password",
-            "/api/auth/request-reset-password-token"
+            "/api/auth/request-reset-password-token",
+            "/api/actuator/health/**",
     };
 
     private SecurityRoutes() {
