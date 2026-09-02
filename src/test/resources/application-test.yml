@@ -1,0 +1,5 @@
+app:
+  jwt:
+    secret: test-only-never-used-outside-tests-000000000000
+  refresh-token:
+    secret: test-only-refresh-never-used-outside-tests-0000

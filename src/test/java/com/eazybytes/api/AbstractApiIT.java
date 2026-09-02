@@ -5,6 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.context.ImportTestcontainers;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import tools.jackson.databind.JsonNode;
@@ -17,12 +18,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Shared plumbing for the API flow tests.
- *
  * These are black-box tests: they drive the application only through HTTP and
  * assert only on what a client can observe — status codes and response bodies.
  * Nothing is mocked and no service or repository is touched directly, so the
  * tests stay valid across any refactor that keeps the contract.
- *
  * Deliberately NOT @Transactional. Each HTTP request must get its own
  * transaction exactly as it does in production; wrapping the test in one would
  * hide lazy-loading and flush bugs. The cost is that rows survive the test, so
@@ -32,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ImportTestcontainers(ContainerConfig.class)
+@ActiveProfiles("test")
 abstract class AbstractApiIT {
 
     protected static final String PASSWORD = "secret123";
@@ -85,11 +85,11 @@ abstract class AbstractApiIT {
     protected String registerAndLogin() throws Exception {
         String email = randomEmail();
         signup(email);
-        return login(email, PASSWORD);
+        return login(email);
     }
 
-    protected String login(String email, String password) throws Exception {
-        String body = mockMvc.perform(jsonRequest(post("/api/auth/login"), loginBody(email, password)))
+    protected String login(String email) throws Exception {
+        String body = mockMvc.perform(jsonRequest(post("/api/auth/login"), loginBody(email, AbstractApiIT.PASSWORD)))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         return text(parse(body), "accessToken");
