@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
 
@@ -26,9 +26,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
@@ -38,7 +35,7 @@ jobs:
           # Build a docker container and
           # push it to ECR so that it can
           # be deployed to ECS.
-          docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/${{vars.ECR_REPOSITORY}}:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/${{vars.ECR_REPOSITORY}}:$IMAGE_TAG .
           docker push $ECR_REGISTRY/${{vars.ECR_REPOSITORY}}:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/${{vars.ECR_REPOSITORY}}:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
