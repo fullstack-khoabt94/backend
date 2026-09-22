@@ -5,6 +5,7 @@ import com.eazybytes.board.services.BoardService;
 import com.eazybytes.dtos.PagedResponse;
 import com.eazybytes.exceptions.NotFoundException;
 import com.eazybytes.task.dtos.CreateTaskDto;
+import com.eazybytes.task.dtos.QueryTasksDto;
 import com.eazybytes.task.dtos.TaskResponse;
 import com.eazybytes.task.dtos.UpdateTaskDto;
 import com.eazybytes.task.entity.Task;
@@ -71,10 +72,12 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public PagedResponse<TaskResponse> getTasks(UUID userId, UUID boardId, Pageable pageable) {
+    public PagedResponse<TaskResponse> getTasks(UUID userId, UUID boardId, QueryTasksDto queryTasksDto, Pageable pageable) {
         Pageable sanitizedPageable = Sorts.sanitize(pageable, ALLOWED_SORT, "id");
         Board board = this.boardService.getValidBoard(userId, boardId);
-        return PagedResponse.of(this.taskRepository.findByBoard(board, sanitizedPageable)
+
+        return PagedResponse.of(this.taskRepository.findAll(
+                TaskSpecification.from(board, queryTasksDto), sanitizedPageable)
                 .map(TaskResponse::fromTask));
     }
 
