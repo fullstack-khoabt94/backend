@@ -2,6 +2,7 @@ package com.eazybytes.task.controllers;
 
 import com.eazybytes.dtos.PagedResponse;
 import com.eazybytes.task.dtos.CreateTaskDto;
+import com.eazybytes.task.dtos.QueryTasksDto;
 import com.eazybytes.task.dtos.TaskResponse;
 import com.eazybytes.task.dtos.UpdateTaskDto;
 import com.eazybytes.task.services.TaskService;
@@ -59,11 +60,12 @@ public class TaskController {
     public ResponseEntity<PagedResponse<TaskResponse>> getAllTask(
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID boardId,
+            @Valid @ModelAttribute QueryTasksDto queryTasksDto,
             @PageableDefault(size = 20, sort = "createdAt",
                     direction = Sort.Direction.DESC) Pageable pageable
     ) {
         PagedResponse<TaskResponse> taskList =
-                this.taskService.getTasks(userId, boardId, pageable);
+                this.taskService.getTasks(userId, boardId, queryTasksDto, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(taskList);
     }
 

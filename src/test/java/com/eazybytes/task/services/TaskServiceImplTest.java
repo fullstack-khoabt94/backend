@@ -26,6 +26,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -327,11 +328,11 @@ class TaskServiceImplTest {
     void getTasks_shouldReturnPagedResponse() {
         Pageable requested = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
         givenCallerOwnsBoard();
-        when(taskRepository.findByBoard(eq(existBoard), any(Pageable.class)))
+        when(taskRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(existTask), requested, 1));
 
         PagedResponse<TaskResponse> result =
-                taskService.getTasks(owner.getId(), existBoard.getId(), requested);
+                taskService.getTasks(owner.getId(), existBoard.getId(), null, requested);
 
         assertThat(result.data()).hasSize(1);
         assertThat(result.data().get(0).id()).isEqualTo(existTask.getId());
@@ -346,12 +347,12 @@ class TaskServiceImplTest {
     void getTasks_shouldKeepAllowedSortAndAppendIdTieBreaker() {
         Pageable requested = PageRequest.of(2, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
         givenCallerOwnsBoard();
-        when(taskRepository.findByBoard(eq(existBoard), any(Pageable.class)))
+        when(taskRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), requested, 0));
 
-        taskService.getTasks(owner.getId(), existBoard.getId(), requested);
+        taskService.getTasks(owner.getId(), existBoard.getId(), null, requested);
 
-        verify(taskRepository).findByBoard(eq(existBoard), pageableCaptor.capture());
+        verify(taskRepository).findAll(any(Specification.class), pageableCaptor.capture());
         Pageable sanitized = pageableCaptor.getValue();
 
         assertThat(sanitized.getPageNumber()).isEqualTo(2);
@@ -371,12 +372,12 @@ class TaskServiceImplTest {
     void getTasks_shouldReturnUnsortedWhenEverySortIsRejected() {
         Pageable requested = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "title"));
         givenCallerOwnsBoard();
-        when(taskRepository.findByBoard(eq(existBoard), any(Pageable.class)))
+        when(taskRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), requested, 0));
 
-        taskService.getTasks(owner.getId(), existBoard.getId(), requested);
+        taskService.getTasks(owner.getId(), existBoard.getId(), null, requested);
 
-        verify(taskRepository).findByBoard(eq(existBoard), pageableCaptor.capture());
+        verify(taskRepository).findAll(any(Specification.class), pageableCaptor.capture());
         assertThat(pageableCaptor.getValue().getSort().isUnsorted()).isTrue();
     }
 
@@ -386,10 +387,10 @@ class TaskServiceImplTest {
         givenCallerDoesNotOwnBoard();
 
         assertThatThrownBy(() -> taskService.getTasks(
-                owner.getId(), existBoard.getId(), PageRequest.of(0, 20)))
+                owner.getId(), existBoard.getId(), null, PageRequest.of(0, 20)))
                 .isInstanceOf(NotFoundException.class);
 
-        verify(taskRepository, never()).findByBoard(any(), any());
+        verify(taskRepository, never()).findAll(any(Specification.class), any(Pageable.class));
     }
 
     // -------------------------------------------------------------- deleteTask
@@ -416,7 +417,7 @@ class TaskServiceImplTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Task not found");
 
-        verify(taskRepository, never()).delete(any());
+        verify(taskRepository, never()).delete((Task) any());
         verify(taskRepository, never()).deleteById(any());
     }
 
@@ -430,7 +431,7 @@ class TaskServiceImplTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Task not found");
 
-        verify(taskRepository, never()).delete(any());
+        verify(taskRepository, never()).delete((Task) any());
     }
 
     @Test
@@ -444,6 +445,6 @@ class TaskServiceImplTest {
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("User not found");
 
-        verify(taskRepository, never()).delete(any());
+        verify(taskRepository, never()).delete((Task) any());
     }
 }
