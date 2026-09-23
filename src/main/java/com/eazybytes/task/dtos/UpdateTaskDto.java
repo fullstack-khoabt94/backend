@@ -2,6 +2,7 @@ package com.eazybytes.task.dtos;
 
 import com.eazybytes.constant.TaskPriority;
 import com.eazybytes.constant.TaskStatus;
+import com.eazybytes.tag.entity.Tag;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
@@ -9,10 +10,11 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 public record UpdateTaskDto(
         @NotBlank(message = "Title must not be empty")
-        @Size(min = 1, max = 120, message = "Title must be between 1 and 120 characters")
+        @Size(min = 1, max = 50, message = "Title must be between 1 and 120 characters")
         String title,
 
         @NotBlank(message = "Description must not be empty")
@@ -26,6 +28,9 @@ public record UpdateTaskDto(
         LocalDateTime dueDate,
 
         @NotNull
-        TaskPriority priority
+        TaskPriority priority,
+
+        @Nullable
+        Set<Tag> tags
 ) {
 }

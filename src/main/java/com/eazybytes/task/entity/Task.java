@@ -4,6 +4,7 @@ import com.eazybytes.board.entity.Board;
 import com.eazybytes.constant.TaskPriority;
 import com.eazybytes.constant.TaskStatus;
 import com.eazybytes.entity.BaseEntity;
+import com.eazybytes.tag.entity.Tag;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +15,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -50,4 +53,12 @@ public class Task extends BaseEntity {
     @OnDelete(action = OnDeleteAction.NO_ACTION)
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
+
+    @ManyToMany
+    @JoinTable(
+            name = "task_tags",
+            joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    @OrderBy("title ASC")
+    private Set<Tag> tags = new HashSet<>();
 }
