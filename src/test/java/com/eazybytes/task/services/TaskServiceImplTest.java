@@ -31,6 +31,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -126,7 +127,11 @@ class TaskServiceImplTest {
                 "That's random description",
                 TaskStatus.TODO,
                 TaskPriority.MEDIUM,
-                null
+                null,
+                // Empty rather than null: TaskResponse.fromTask streams the
+                // collection unguarded, so a null here is an NPE on the way
+                // back out, not a task without tags.
+                Set.of()
         );
     }
 
@@ -136,7 +141,8 @@ class TaskServiceImplTest {
                 "Updated description",
                 TaskStatus.IN_PROGRESS,
                 LocalDateTime.now().plusDays(3),
-                TaskPriority.HIGH
+                TaskPriority.HIGH,
+                Set.of()
         );
     }
 

@@ -53,6 +53,10 @@ public class TaskServiceImpl implements TaskService {
         newTask.setStatus(createTaskDto.status());
         newTask.setPriority(createTaskDto.priority());
 
+        if (createTaskDto.tags() != null) {
+            newTask.setTags(createTaskDto.tags());
+        }
+
         Task savedTask = taskRepository.save(newTask);
         return TaskResponse.fromTask(savedTask);
     }
@@ -65,6 +69,15 @@ public class TaskServiceImpl implements TaskService {
         updatedTask.setDueDate(updateTaskDto.dueDate());
         updatedTask.setStatus(updateTaskDto.status());
         updatedTask.setPriority(updateTaskDto.priority());
+        // Null-guarded, unlike the other fields. `tags` is @Nullable, and
+        // assigning null here would overwrite the entity's initialised
+        // collection, which `TaskResponse.fromTask` then streams -> NPE, and a
+        // 500 on an ordinary update that simply omits the field. Omitting it
+        // therefore means "leave the tags alone"; send an empty array to clear
+        // them.
+        if (updateTaskDto.tags() != null) {
+            updatedTask.setTags(updateTaskDto.tags());
+        }
 
         Task savedTask = taskRepository.save(updatedTask);
         return TaskResponse.fromTask(savedTask);
