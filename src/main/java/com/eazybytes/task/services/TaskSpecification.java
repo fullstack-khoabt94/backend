@@ -6,7 +6,6 @@ import com.eazybytes.task.dtos.QueryTasksDto;
 import com.eazybytes.task.entity.Task;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
-import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
@@ -21,6 +20,7 @@ public final class TaskSpecification {
     public static Specification<Task> from(Board board, QueryTasksDto queryTasksDto) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+            query.distinct(true);
 
             predicates.add(cb.equal(root.get("board"), board));
 
