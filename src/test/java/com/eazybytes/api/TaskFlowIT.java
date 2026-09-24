@@ -32,6 +32,26 @@ class TaskFlowIT extends AbstractApiIT {
         return "/api/board/" + boardId + "/task";
     }
 
+    private String createTag(String token, String title) throws Exception {
+        String body = mockMvc.perform(asUser(jsonRequest(post("/api/tag"), """
+                        {"title":"%s","description":"desc","color":"blue"}
+                        """.formatted(title)), token))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        return text(parse(body), "id");
+    }
+
+    private void createTaskWithTags(String token, String boardId, String title, String... tagIds)
+            throws Exception {
+        String tags = java.util.Arrays.stream(tagIds)
+                .map(id -> "{\"id\":\"" + id + "\"}")
+                .collect(java.util.stream.Collectors.joining(","));
+        mockMvc.perform(asUser(jsonRequest(post(tasksOf(boardId)), """
+                        {"title":"%s","description":"desc","status":"TODO","priority":"LOW","dueDate":null,"tags":[%s]}
+                        """.formatted(title, tags)), token))
+                .andExpect(status().isCreated());
+    }
+
     // ------------------------------------------------------------- create
 
     @Test
@@ -190,6 +210,44 @@ class TaskFlowIT extends AbstractApiIT {
         org.assertj.core.api.Assertions.assertThat(ids)
                 .as("two pages of six tasks must cover all six with no duplicates")
                 .hasSize(6);
+    }
+
+    @Test
+    @DisplayName("list: filtering by several tags pages over tasks, not join rows")
+    void listTasks_shouldPageDistinctTasksWhenFilteringBySeveralTags() throws Exception {
+        String token = registerAndLogin();
+        String boardId = createBoard(token, "Sprint 1");
+        String backend = createTag(token, "backend");
+        String frontend = createTag(token, "frontend");
+        String database = createTag(token, "database");
+
+        // Two of the four matches carry both filtered tags, so the tag join
+        // yields six rows for four tasks. Without DISTINCT the first page of
+        // three rows held only two tasks, Spring Data read the short page as
+        // the last one, and "BE" and "ALL3" could not be reached at all.
+        createTaskWithTags(token, boardId, "ALL3", backend, frontend, database);
+        createTaskWithTags(token, boardId, "BE", backend);
+        createTaskWithTags(token, boardId, "DB", database);
+        createTaskWithTags(token, boardId, "BE+DB", backend, database);
+        createTaskWithTags(token, boardId, "FE", frontend);
+
+        java.util.Set<String> titles = new java.util.HashSet<>();
+        for (int page = 0; page < 2; page++) {
+            String body = mockMvc.perform(asUser(get(tasksOf(boardId) + "/all")
+                            .param("tags", backend).param("tags", database)
+                            .param("page", String.valueOf(page)).param("size", "3")
+                            .param("sort", "createdAt,desc"), token))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.total").value(4))
+                    .andExpect(jsonPath("$.totalPages").value(2))
+                    .andExpect(jsonPath("$.data.length()").value(page == 0 ? 3 : 1))
+                    .andReturn().getResponse().getContentAsString();
+            parse(body).get("data").forEach(node -> titles.add(text(node, "title")));
+        }
+
+        org.assertj.core.api.Assertions.assertThat(titles)
+                .as("every task carrying either tag appears exactly once across the pages")
+                .containsExactlyInAnyOrder("ALL3", "BE", "DB", "BE+DB");
     }
 
     @Test
