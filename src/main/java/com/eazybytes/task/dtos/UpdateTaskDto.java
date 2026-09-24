@@ -24,7 +24,6 @@ public record UpdateTaskDto(
         TaskStatus status,
 
         @Nullable
-        @Future
         LocalDateTime dueDate,
 
         @NotNull

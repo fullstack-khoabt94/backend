@@ -1,16 +1,7 @@
 package com.eazybytes.tag.dtos;
 
-import com.eazybytes.constant.TaskPriority;
-import com.eazybytes.constant.TaskStatus;
-import com.eazybytes.tag.entity.Tag;
-import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
-import java.time.LocalDateTime;
-import java.util.Set;
 
 public record UpdateTagDto(
         @NotBlank(message = "Title must not be empty")

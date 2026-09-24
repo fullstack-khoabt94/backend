@@ -4,7 +4,6 @@ import com.eazybytes.constant.TaskPriority;
 import com.eazybytes.constant.TaskStatus;
 import com.eazybytes.tag.entity.Tag;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -29,7 +28,6 @@ public record CreateTaskDto(
         TaskPriority priority,
 
         @Nullable
-        @Future
         LocalDateTime dueDate,
 
         @Nullable

@@ -66,18 +66,6 @@ class TaskFlowIT extends AbstractApiIT {
     }
 
     @Test
-    @DisplayName("create: a due date in the past fails validation with 400")
-    void createTask_shouldRejectPastDueDate() throws Exception {
-        String token = registerAndLogin();
-        String boardId = createBoard(token, "Sprint 1");
-        String past = LocalDateTime.now().minusDays(5).withNano(0).toString();
-
-        mockMvc.perform(asUser(jsonRequest(post(tasksOf(boardId)),
-                        taskBody("Overdue", "TODO", "LOW", past)), token))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     @DisplayName("create: a blank title fails validation with 400")
     void createTask_shouldRejectBlankTitle() throws Exception {
         String token = registerAndLogin();

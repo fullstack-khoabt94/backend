@@ -1,8 +1,11 @@
 package com.eazybytes.task.services;
 
 import com.eazybytes.board.entity.Board;
+import com.eazybytes.tag.entity.Tag;
 import com.eazybytes.task.dtos.QueryTasksDto;
 import com.eazybytes.task.entity.Task;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
@@ -36,6 +39,11 @@ public final class TaskSpecification {
 
             if (queryTasksDto.dueOnOrBefore() != null) {
                 predicates.add(cb.lessThan(root.get("dueDate"), queryTasksDto.dueOnOrBefore().atStartOfDay().plusDays(1)));
+            }
+
+            if (queryTasksDto.tags() != null) {
+                Join<Task, Tag> taskTagJoin = root.join("tags", JoinType.INNER);
+                predicates.add(taskTagJoin.get("id").in(queryTasksDto.tags()));
             }
 
             return cb.and(predicates);
